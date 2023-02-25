@@ -8,4 +8,17 @@ const getCategories = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = getCategories;
+
+const newCategory = async (req, res, next) => {
+  try {
+    const { category } = req.body;
+    if (!category) {
+      throw new Error("Category input is required");
+    }
+    res.send(category);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getCategories, newCategory };
