@@ -13,9 +13,17 @@ const newCategory = async (req, res, next) => {
   try {
     const { category } = req.body;
     if (!category) {
-      throw new Error("Category input is required");
+      res.status(400).send("Category input is required");
     }
-    res.send(category);
+    const categoryExists = await Category.findOne({ name: category });
+    if (categoryExists) {
+      res.status(400).send("Category already exists");
+    } else {
+      const categoryCreated = await Category.create({
+        name: category,
+      });
+      res.status(201).send({ categoryCreated: categoryCreated });
+    }
   } catch (err) {
     next(err);
   }
