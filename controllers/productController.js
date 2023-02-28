@@ -150,10 +150,20 @@ const adminGetProducts = async (req, res, next) => {
     next(err);
   }
 };
+const adminDeleteProduct = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id).orFail();
+    await product.remove();
+    res.json({ message: "product removed" });
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   getProducts,
   getProductById,
   getBestsellers,
   adminGetProducts,
+  adminDeleteProduct,
 };
