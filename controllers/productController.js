@@ -131,7 +131,7 @@ const getBestsellers = async (req, res, next) => {
         $group: { _id: "$category", doc_with_max_sales: { $first: "$$ROOT" } },
       },
       { $replaceWith: "$doc_with_max_sales" },
-      { $match: { sales: { $gt: 0 } } },
+      // { $match: { sales: { $gt: 0 } } },
       { $project: { _id: 1, name: 1, images: 1, category: 1, description: 1 } },
       { $limit: 3 },
     ]);
@@ -140,5 +140,20 @@ const getBestsellers = async (req, res, next) => {
     next(err);
   }
 };
+const adminGetProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({})
+      .sort({ category: 1 })
+      .select("name price category");
+    return res.json(products);
+  } catch (err) {
+    next(err);
+  }
+};
 
-module.exports = { getProducts, getProductById, getBestsellers };
+module.exports = {
+  getProducts,
+  getProductById,
+  getBestsellers,
+  adminGetProducts,
+};
