@@ -234,6 +234,7 @@ const adminUpload = async (req, res, next) => {
     );
 
     let product = await Product.findById(req.query.productId).orFail();
+    console.log(req.query.productId);
 
     let imagesTable = [];
     if (Array.isArray(req.files.images)) {
