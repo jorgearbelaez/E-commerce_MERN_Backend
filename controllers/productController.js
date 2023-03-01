@@ -262,10 +262,11 @@ const adminUpload = async (req, res, next) => {
 };
 const adminDeleteProductImage = async (req, res, next) => {
   try {
+    //path must be encoded in the fronentd
     const imagePath = decodeURIComponent(req.params.imagePath);
 
     const finalPath = path.resolve("../frontend/public") + imagePath;
-
+    //remove from frontend file
     fs.unlink(finalPath, (err) => {
       if (err) {
         res.status(500).send(err);
