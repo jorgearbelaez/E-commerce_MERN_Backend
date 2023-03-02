@@ -1,5 +1,6 @@
 const User = require("../models/UserModel");
 const Review = require("../models/ReviewModel");
+const Product = require("../models/ProductModel");
 const { hashPassword, comparePasswords } = require("../utils/hashPassword");
 const generateAuthToken = require("../utils/generateAuthToken");
 
@@ -167,7 +168,6 @@ const getUserProfile = async (req, res, next) => {
 };
 const writeReview = async (req, res, next) => {
   try {
-    // get comment, rating from request.body:
     const { comment, rating } = req.body;
     // validate request:
     if (!(comment && rating)) {
@@ -189,6 +189,29 @@ const writeReview = async (req, res, next) => {
         },
       },
     ]);
+    //once review is created we have to insert in the product reviews array
+    const product = await Product.findById(req.params.productId).populate(
+      "reviews"
+    );
+    //product reviews counts
+    let prc = [...product.reviews];
+    prc.push({ rating: rating });
+    product.reviews.push(reviewId);
+
+    //not existing reviews
+    if (product.reviews.length === 1) {
+      product.rating = Number(rating);
+      product.reviewsNumber = 1;
+    } else {
+      //already have reviews we calculate the average
+      product.reviewsNumber = product.reviews.length;
+      product.rating =
+        prc
+          .map((item) => Number(item.rating))
+          .reduce((sum, item) => sum + item, 0) / product.reviews.length;
+    }
+    await product.save();
+
     res.send("review created");
   } catch (err) {
     next(err);
