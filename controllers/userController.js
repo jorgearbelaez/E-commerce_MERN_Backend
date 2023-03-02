@@ -193,6 +193,14 @@ const writeReview = async (req, res, next) => {
     const product = await Product.findById(req.params.productId).populate(
       "reviews"
     );
+    //because we have reviews populated, we have access to user id for every review as well as the id of the user logged, then we can compare it to have only one review per user for a specific product
+    const alreadyReviewed = product.reviews.find(
+      (review) => review.user._id.toString() === req.user._id.toString()
+    );
+    if (alreadyReviewed) {
+      return res.status(400).send("product already reviewed");
+    }
+
     //product reviews counts
     let prc = [...product.reviews];
     prc.push({ rating: rating });
