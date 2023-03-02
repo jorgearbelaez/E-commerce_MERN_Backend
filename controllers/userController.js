@@ -112,5 +112,49 @@ const loginUser = async (req, res, next) => {
     next(err);
   }
 };
+const updateUserProfile = async (req, res, next) => {
+  const {
+    name,
+    lastName,
+    email,
+    phoneNumber,
+    address,
+    country,
+    zipCode,
+    city,
+    state,
+    password,
+  } = req.body;
 
-module.exports = { getUsers, registerUser, loginUser };
+  try {
+    const user = await User.findById(req.user._id).orFail();
+    user.name = name || user.name;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.phoneNumber = phoneNumber;
+    user.address = address;
+    user.country = country;
+    user.zipCode = zipCode;
+    user.city = city;
+    user.state = state;
+    if (password !== user.password) {
+      user.password = hashPassword(password);
+    }
+    await user.save();
+
+    res.json({
+      success: "user updated",
+      userUpdated: {
+        _id: user._id,
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getUsers, registerUser, loginUser, updateUserProfile };
