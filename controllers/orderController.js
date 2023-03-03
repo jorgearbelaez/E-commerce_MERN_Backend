@@ -1,4 +1,12 @@
-const getOrders = (req, res) => {
-  res.send("Handling order routes, e.g. get orders");
+const Order = require("../models/OrderModel");
+const ObjectId = require("mongodb").ObjectId;
+
+const getUserOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ user: ObjectId(req.user._id) });
+    res.send(orders);
+  } catch (err) {
+    next(err);
+  }
 };
-module.exports = getOrders;
+module.exports = getUserOrders;

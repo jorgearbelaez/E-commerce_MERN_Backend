@@ -1,7 +1,17 @@
 const express = require("express");
-const router = express.Router();
-const getOrders = require("../controllers/orderController");
+const {
+  verifyIsLoggedIn,
+  verifyIsAdmin,
+} = require("../middleware/verifyAuthToken");
+const getUserOrders = require("../controllers/orderController");
 
-router.get("/", getOrders);
+const router = express.Router();
+
+// user routes
+router.use(verifyIsLoggedIn);
+router.get("/", getUserOrders);
+
+// admin routes
+router.use(verifyIsAdmin);
 
 module.exports = router;
