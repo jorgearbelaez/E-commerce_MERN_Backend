@@ -248,6 +248,24 @@ const getUser = async (req, res, next) => {
     next(err);
   }
 };
+const updateUser = async (req, res, next) => {
+  try {
+    const { name, lastName, email, isAdmin } = req.body;
+
+    const user = await User.findById(req.params.id).orFail();
+
+    user.name = name || user.name;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.isAdmin = isAdmin || user.isAdmin;
+
+    await user.save();
+
+    res.send("user updated");
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   getUsers,
@@ -257,4 +275,5 @@ module.exports = {
   getUserProfile,
   writeReview,
   getUser,
+  updateUser,
 };
