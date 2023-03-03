@@ -168,6 +168,7 @@ const getUserProfile = async (req, res, next) => {
 };
 const writeReview = async (req, res, next) => {
   try {
+    const session = await Review.startSession();
     const { comment, rating } = req.body;
     // validate request:
     if (!(comment && rating)) {
@@ -178,26 +179,33 @@ const writeReview = async (req, res, next) => {
     const ObjectId = require("mongodb").ObjectId;
     let reviewId = ObjectId();
 
-    await Review.create([
-      {
-        _id: reviewId,
-        comment: comment,
-        rating: Number(rating),
-        user: {
-          _id: req.user._id,
-          name: req.user.name + " " + req.user.lastName,
+    session.startTransaction();
+
+    await Review.create(
+      [
+        {
+          _id: reviewId,
+          comment: comment,
+          rating: Number(rating),
+          user: {
+            _id: req.user._id,
+            name: req.user.name + " " + req.user.lastName,
+          },
         },
-      },
-    ]);
-    //once review is created we have to insert in the product reviews array
-    const product = await Product.findById(req.params.productId).populate(
-      "reviews"
+      ],
+      { session: session }
     );
+    //once review is created we have to insert in the product reviews array
+    const product = await Product.findById(req.params.productId)
+      .populate("reviews")
+      .session(session);
     //because we have reviews populated, we have access to user id for every review as well as the id of the user logged, then we can compare it to have only one review per user for a specific product
     const alreadyReviewed = product.reviews.find(
       (review) => review.user._id.toString() === req.user._id.toString()
     );
     if (alreadyReviewed) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("product already reviewed");
     }
 
@@ -220,8 +228,13 @@ const writeReview = async (req, res, next) => {
     }
     await product.save();
 
+    await session.commitTransaction();
+    session.endSession();
+
     res.send("review created");
   } catch (err) {
+    // if there is an error neither of both (review collection or product collection) will be written in the database
+    await session.abortTransaction();
     next(err);
   }
 };
