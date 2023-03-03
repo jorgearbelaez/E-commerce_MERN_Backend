@@ -238,6 +238,16 @@ const writeReview = async (req, res, next) => {
     next(err);
   }
 };
+const getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("name lastName email isAdmin")
+      .orFail();
+    return res.send(user);
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   getUsers,
@@ -246,4 +256,5 @@ module.exports = {
   updateUserProfile,
   getUserProfile,
   writeReview,
+  getUser,
 };
