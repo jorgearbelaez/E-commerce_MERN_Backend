@@ -7,6 +7,7 @@ const {
   getUserOrders,
   getOrder,
   createOrder,
+  updateOrderToPaid,
 } = require("../controllers/orderController");
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.use(verifyIsLoggedIn);
 router.get("/", getUserOrders);
 router.get("/user/:id", getOrder);
 router.post("/", createOrder);
+router.put("/paid/:id", updateOrderToPaid);
 
 // admin routes
 router.use(verifyIsAdmin);

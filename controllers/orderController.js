@@ -33,7 +33,7 @@ const createOrder = async (req, res, next) => {
     let qty = cartItems.map((item) => {
       return Number(item.quantity);
     });
-
+    //update sales count
     await Product.find({ _id: { $in: ids } }).then((products) => {
       products.forEach(function (product, idx) {
         product.sales += qty[idx];
@@ -53,5 +53,17 @@ const createOrder = async (req, res, next) => {
     next(err);
   }
 };
+const updateOrderToPaid = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id).orFail();
+    order.isPaid = true;
+    order.paidAt = Date.now();
 
-module.exports = { getUserOrders, getOrder, createOrder };
+    const updatedOrder = await order.save();
+    res.send(updatedOrder);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getUserOrders, getOrder, createOrder, updateOrderToPaid };
