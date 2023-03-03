@@ -3,7 +3,11 @@ const {
   verifyIsLoggedIn,
   verifyIsAdmin,
 } = require("../middleware/verifyAuthToken");
-const { getUserOrders, getOrder } = require("../controllers/orderController");
+const {
+  getUserOrders,
+  getOrder,
+  createOrder,
+} = require("../controllers/orderController");
 
 const router = express.Router();
 
@@ -11,6 +15,7 @@ const router = express.Router();
 router.use(verifyIsLoggedIn);
 router.get("/", getUserOrders);
 router.get("/user/:id", getOrder);
+router.post("/", createOrder);
 
 // admin routes
 router.use(verifyIsAdmin);
