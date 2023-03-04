@@ -76,6 +76,16 @@ const updateOrderToDelivered = async (req, res, next) => {
     next(err);
   }
 };
+const getOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({})
+      .populate("user", "-password")
+      .sort({ paymentMethod: "desc" });
+    res.send(orders);
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   getUserOrders,
@@ -83,4 +93,5 @@ module.exports = {
   createOrder,
   updateOrderToPaid,
   updateOrderToDelivered,
+  getOrders,
 };

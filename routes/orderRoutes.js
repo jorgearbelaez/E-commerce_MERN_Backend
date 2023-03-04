@@ -9,6 +9,7 @@ const {
   createOrder,
   updateOrderToPaid,
   updateOrderToDelivered,
+  getOrders,
 } = require("../controllers/orderController");
 
 const router = express.Router();
@@ -23,5 +24,6 @@ router.put("/paid/:id", updateOrderToPaid);
 // admin routes
 router.use(verifyIsAdmin);
 router.put("/delivered/:id", updateOrderToDelivered);
+router.get("/admin", getOrders);
 
 module.exports = router;
