@@ -3,7 +3,7 @@ const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
 const connectDB = require("./config/db");
 const apiRoutes = require("./routes/apiRoutes");
-const port = 3000;
+const port = 8080;
 
 const app = express();
 
