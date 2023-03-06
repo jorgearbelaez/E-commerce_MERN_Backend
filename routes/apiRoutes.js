@@ -1,11 +1,15 @@
 const express = require("express");
-const app = express();
+const jwt = require("jsonwebtoken");
 const productRoutes = require("./productRoutes");
 const categoryRoutes = require("./categoryRoutes");
 const userRoutes = require("./userRoutes");
 const orderRoutes = require("./orderRoutes");
 
-const jwt = require("jsonwebtoken");
+const app = express();
+
+app.get("/logout", (req, res) => {
+  return res.clearCookie("access_token").send("access token cleared");
+});
 
 app.get("/get-token", (req, res) => {
   try {
