@@ -12,7 +12,7 @@ const users = [
   {
     _id: ObjectId("625add3d78fb449f9d9fe2ee"),
     name: "Jorge",
-    lastName: "Arbelaez",
+    lastName: "Arbelaezcarmona",
     email: "jorgeArbelaez@hotmail.com",
     password: bcrypt.hashSync("jarbelaez@hotmail.com", 10),
   },
