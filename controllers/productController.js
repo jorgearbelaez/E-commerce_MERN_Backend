@@ -1,7 +1,4 @@
 const Product = require("../models/ProductModel");
-const fs = require("fs");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
 const recordsPerPage = require("../config/pagination");
 const imageValidate = require("../utils/imageValidate");
 
@@ -11,21 +8,16 @@ const getProducts = async (req, res, next) => {
     let queryCondition = false;
 
     let priceQueryCondition = {};
-
     if (req.query.price) {
       queryCondition = true;
       priceQueryCondition = { price: { $lte: Number(req.query.price) } };
     }
-
     let ratingQueryCondition = {};
     if (req.query.rating) {
       queryCondition = true;
       ratingQueryCondition = { rating: { $in: req.query.rating.split(",") } };
     }
-
     let categoryQueryCondition = {};
-
-    // search bar
     const categoryName = req.params.categoryName || "";
     if (categoryName) {
       queryCondition = true;
@@ -33,7 +25,6 @@ const getProducts = async (req, res, next) => {
       var regEx = new RegExp("^" + a);
       categoryQueryCondition = { category: regEx };
     }
-    // filtering page(queries)
     if (req.query.category) {
       queryCondition = true;
       let a = req.query.category.split(",").map((item) => {
@@ -56,7 +47,7 @@ const getProducts = async (req, res, next) => {
             attrs: { $elemMatch: { key: a[0], value: { $in: values } } },
           };
           acc.push(a1);
-          // console.dir(acc, { depth: null });
+          // console.dir(acc, { depth: null })
           return acc;
         } else return acc;
       }, []);
@@ -71,19 +62,17 @@ const getProducts = async (req, res, next) => {
     let sort = {};
     const sortOption = req.query.sort || "";
     if (sortOption) {
-      //we receive entries like price_1, price_-1, etc.
       let sortOpt = sortOption.split("_");
       sort = { [sortOpt[0]]: Number(sortOpt[1]) };
     }
+
     const searchQuery = req.params.searchQuery || "";
     let searchQueryCondition = {};
     let select = {};
     if (searchQuery) {
       queryCondition = true;
-      //indexes
       searchQueryCondition = { $text: { $search: searchQuery } };
       select = {
-        //accuracy results
         score: { $meta: "textScore" },
       };
       sort = { score: { $meta: "textScore" } };
@@ -96,11 +85,12 @@ const getProducts = async (req, res, next) => {
           ratingQueryCondition,
           categoryQueryCondition,
           searchQueryCondition,
-          ...attrsQueryCondition, //because it could be various objects
+          ...attrsQueryCondition,
         ],
       };
     }
-    const totalProducts = await Product.countDocuments({});
+
+    const totalProducts = await Product.countDocuments(query);
     const products = await Product.find(query)
       .select(select)
       .skip(recordsPerPage * (pageNum - 1))
@@ -127,6 +117,7 @@ const getProductById = async (req, res, next) => {
     next(err);
   }
 };
+
 const getBestsellers = async (req, res, next) => {
   try {
     const products = await Product.aggregate([
@@ -135,7 +126,7 @@ const getBestsellers = async (req, res, next) => {
         $group: { _id: "$category", doc_with_max_sales: { $first: "$$ROOT" } },
       },
       { $replaceWith: "$doc_with_max_sales" },
-      // { $match: { sales: { $gt: 0 } } },
+      { $match: { sales: { $gt: 0 } } },
       { $project: { _id: 1, name: 1, images: 1, category: 1, description: 1 } },
       { $limit: 3 },
     ]);
@@ -144,6 +135,7 @@ const getBestsellers = async (req, res, next) => {
     next(err);
   }
 };
+
 const adminGetProducts = async (req, res, next) => {
   try {
     const products = await Product.find({})
@@ -154,6 +146,7 @@ const adminGetProducts = async (req, res, next) => {
     next(err);
   }
 };
+
 const adminDeleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id).orFail();
@@ -189,6 +182,7 @@ const adminCreateProduct = async (req, res, next) => {
     next(err);
   }
 };
+
 const adminUpdateProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id).orFail();
@@ -215,7 +209,18 @@ const adminUpdateProduct = async (req, res, next) => {
     next(err);
   }
 };
+
 const adminUpload = async (req, res, next) => {
+    if (req.query.cloudinary === "true") {
+        try {
+            let product = await Product.findById(req.query.productId).orFail();
+            product.images.push({ path: req.body.url });
+            await product.save();
+        } catch (err) {
+            next(err);
+        }
+       return 
+    }
   try {
     if (!req.files || !!req.files.images === false) {
       return res.status(400).send("No files were uploaded.");
@@ -226,6 +231,8 @@ const adminUpload = async (req, res, next) => {
       return res.status(400).send(validateResult.error);
     }
 
+    const path = require("path");
+    const { v4: uuidv4 } = require("uuid");
     const uploadDirectory = path.resolve(
       __dirname,
       "../../frontend",
@@ -235,7 +242,6 @@ const adminUpload = async (req, res, next) => {
     );
 
     let product = await Product.findById(req.query.productId).orFail();
-    console.log(req.query.productId);
 
     let imagesTable = [];
     if (Array.isArray(req.files.images)) {
@@ -260,13 +266,14 @@ const adminUpload = async (req, res, next) => {
     next(err);
   }
 };
+
 const adminDeleteProductImage = async (req, res, next) => {
   try {
-    //path must be encoded in the fronentd
     const imagePath = decodeURIComponent(req.params.imagePath);
-
+    const path = require("path");
     const finalPath = path.resolve("../frontend/public") + imagePath;
-    //remove from frontend file
+
+    const fs = require("fs");
     fs.unlink(finalPath, (err) => {
       if (err) {
         res.status(500).send(err);
@@ -274,7 +281,6 @@ const adminDeleteProductImage = async (req, res, next) => {
     });
     await Product.findOneAndUpdate(
       { _id: req.params.productId },
-      //update in database
       { $pull: { images: { path: imagePath } } }
     ).orFail();
     return res.end();
@@ -294,3 +300,4 @@ module.exports = {
   adminUpload,
   adminDeleteProductImage,
 };
+
