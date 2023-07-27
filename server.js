@@ -16,6 +16,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(fileUpload());
 
+//socket for real time chat
+io.on("connection", (socket) => {
+  socket.on("client sends message", (msg) => {
+      console.log(msg);
+  })
+})
+
 app.get("/", async (req, res, next) => {
   res.json({ message: "API running..." });
 });
