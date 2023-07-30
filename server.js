@@ -23,6 +23,10 @@ io.on("connection", (socket) => {
       message: msg,
     })
   })
+
+  socket.on("admin sends message", ({ message }) => {
+    socket.broadcast.emit("server sends message from admin to client", message);
+})
 })
 
 app.get("/", async (req, res, next) => {
