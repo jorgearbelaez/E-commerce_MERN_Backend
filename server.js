@@ -1,3 +1,5 @@
+require("dotenv").config();
+var helmet = require('helmet')
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
@@ -8,6 +10,8 @@ const apiRoutes = require("./routes/apiRoutes");
 const port = process.env.PORT || 8080;
 
 const app = express();
+
+app.use(helmet())
 
 const httpServer = createServer(app);
 global.io = new Server(httpServer);
